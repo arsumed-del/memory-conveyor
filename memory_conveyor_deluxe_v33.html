@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Memory Conveyor Deluxe v3.3</title>
+
+<style>
+:root{
+  --bg:#0a0f18;
+  --panel:#111927;
+  --panel2:#182231;
+  --text:#f5f7fb;
+  --muted:#9aa9bd;
+  --accent:#67c9ff;
+  --gold:#f2b45e;
+  --good:#65e6a7;
+  --bad:#ff7a7a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(53,102,148,.22), transparent 34%),
+    radial-gradient(circle at 85% 18%, rgba(231,151,67,.11), transparent 30%),
+    linear-gradient(180deg,#09111d 0%,#0a0f18 58%,#090d14 100%);
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;opacity:.16;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size:32px 32px;
+}
+.app{
+  width:min(1240px,96vw);
+  margin:0 auto;
+  padding:24px 18px 34px;
+}
+.topbar{
+  display:grid;
+  grid-template-columns:1fr auto auto auto;
+  align-items:center;
+  gap:20px;
+  padding:18px 20px;
+  border:1px solid rgba(126,171,214,.26);
+  border-radius:26px;
+  background:linear-gradient(180deg,rgba(21,34,52,.96),rgba(12,22,35,.96));
+  box-shadow:0 20px 50px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.05);
+}
+.brand{display:flex;align-items:center;gap:15px}
+.brain{
+  width:58px;height:58px;border-radius:18px;
+  display:grid;place-items:center;
+  font-size:29px;
+  background:linear-gradient(145deg,#4fc7ff,#1b74d8);
+  box-shadow:0 10px 25px rgba(43,153,235,.35),inset 0 2px 8px rgba(255,255,255,.3);
+}
+h1{margin:0;font-size:clamp(29px,4vw,50px);line-height:.95;letter-spacing:-1.8px}
+h1 span{color:#52bfff}
+.tag{margin-top:8px;color:#9db0c8;letter-spacing:5px;font-size:11px;font-weight:700}
+.stats{
+  display:flex;align-items:stretch;
+  border:1px solid rgba(122,169,213,.25);
+  background:#0b1523;
+  border-radius:18px;
+  overflow:hidden;
+}
+.stat{min-width:105px;padding:11px 18px;text-align:center;border-right:1px solid rgba(139,167,199,.22)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-size:25px}
+.stat span{display:block;margin-bottom:3px;color:#a6b7cc;font-size:12px}
+.modeControls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.modeBtn,.spanBtn{border:1px solid #33465e;background:#101b2b;color:#b8c8da;border-radius:10px;padding:8px 11px;font-weight:800;cursor:pointer}
+.modeBtn.active{background:#245b82;color:white;border-color:#55b9ef}
+.spanPicker{display:none;align-items:center;gap:7px}.spanValue{min-width:28px;text-align:center;font-weight:900;font-size:18px}
+.iconBtns{display:flex;gap:10px}
+.iconBtn{
+  width:52px;height:52px;border-radius:15px;border:1px solid #27364c;
+  background:linear-gradient(#182338,#0c1422);
+  color:#d4e4f6;font-size:21px;box-shadow:0 7px 16px rgba(0,0,0,.28);
+}
+.stage{
+  margin-top:24px;
+  border-radius:30px;
+  overflow:hidden;
+  position:relative;
+  min-height:500px;
+  border:1px solid rgba(110,144,182,.16);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(242,180,94,.18), transparent 26%),
+    linear-gradient(180deg,#17202c 0%,#101821 55%,#0a1018 100%);
+  box-shadow:0 25px 70px rgba(0,0,0,.38);
+}
+.ambient{
+  position:absolute;inset:0;pointer-events:none;
+}
+.ambient:before,.ambient:after{
+  content:"";position:absolute;top:40px;width:180px;height:280px;filter:blur(2px);opacity:.4;
+  background:radial-gradient(ellipse at center,rgba(236,160,74,.34),transparent 70%);
+}
+.ambient:before{left:10%}.ambient:after{right:10%}
+.tip{
+  position:absolute;left:28px;top:34px;width:245px;
+  padding:16px 18px;border-radius:18px;
+  background:rgba(7,14,23,.72);
+  border:1px solid rgba(120,153,190,.26);
+  color:#dfe8f3;line-height:1.45;font-size:14px;
+  backdrop-filter:blur(7px);
+}
+.tip b{color:#ffd479}
+.promptPanel{
+  position:absolute;right:30px;top:155px;width:255px;
+  padding:20px;border-radius:19px;
+  border:1px solid rgba(242,180,94,.32);
+  background:linear-gradient(180deg,rgba(52,40,30,.88),rgba(18,16,17,.94));
+  box-shadow:0 13px 35px rgba(0,0,0,.34),inset 0 0 28px rgba(243,170,81,.08);
+  text-align:center;font-size:22px;font-weight:800;
+}
+.scene{height:345px;position:relative;margin-top:115px;overflow:hidden}
+.railTop{
+  position:absolute;left:0;right:0;bottom:118px;height:18px;
+  background:linear-gradient(#66503f,#2b292a 45%,#161b22 55%,#090d12);
+  border-top:2px solid rgba(246,195,123,.45);
+}
+.rollers{
+  position:absolute;left:0;right:0;bottom:60px;height:58px;
+  background:
+    radial-gradient(circle at 28px 29px,#7d6852 0 10px,#b49473 11px 14px,#44382d 15px 17px,#12161d 18px 24px,transparent 25px) 0 0/98px 58px repeat-x,
+    linear-gradient(#111722,#0b0f15);
+  border-top:2px solid #6a5038;
+  border-bottom:4px solid #070a0f;
+}
+.viewport{position:absolute;left:0;right:0;bottom:126px;height:100px;overflow:hidden}
+.belt{
+  height:100px;display:flex;gap:16px;align-items:center;padding-left:22px;
+  will-change:transform;
+}
+.belt.moving{transition:transform 420ms cubic-bezier(.2,.72,.26,1)}
+.ball{
+  width:76px;height:76px;flex:0 0 76px;border-radius:50%;
+  position:relative;
+  box-shadow:none;
+  border:none;
+}
+.ball:after{display:none;}
+.ball,.choice{filter:none !important;}
+.tunnel{
+  position:absolute;
+  left:-20px;
+  bottom:100px;
+  height:170px;
+  background:#1d232c;
+  border-top:3px solid #5c6470;
+  border-bottom:6px solid #090c11;
+  border-radius:0;
+  z-index:50;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  color:#8c95a2;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:12px;
+  text-shadow:0 2px 4px #000;
+  box-shadow:0 16px 30px rgba(0,0,0,.72), inset 0 2px rgba(255,255,255,.06);
+  pointer-events:none;
+}
+.tunnel:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.018) 0 74px,
+      rgba(0,0,0,.28) 74px 77px,
+      rgba(255,255,255,.035) 77px 79px
+    );
+  z-index:0;
+}
+.tunnel:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),transparent 28%,transparent 75%,rgba(0,0,0,.12));
+  z-index:1;
+}
+.tunnel.revealed{opacity:.13}
+.previewCover{
+  position:absolute;
+  bottom:100px;
+  height:170px;
+  z-index:49;
+  display:none;
+  border-top:3px solid rgba(92,100,112,.78);
+  border-bottom:6px solid rgba(9,12,17,.58);
+  border-left:0;
+  border-right:2px solid rgba(184,198,218,.5);
+  border-radius:0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.012) 0 74px,
+      rgba(0,0,0,.13) 74px 77px,
+      rgba(255,255,255,.018) 77px 79px
+    ),
+    linear-gradient(180deg,
+      rgba(52,57,67,.34) 0%,
+      rgba(37,42,51,.32) 52%,
+      rgba(21,25,32,.34) 100%);
+  box-shadow:
+    inset 0 2px rgba(255,255,255,.025),
+    inset -8px 0 18px rgba(0,0,0,.10);
+  backdrop-filter:none;
+}
+.previewCover.revealed{opacity:.08}
+.downPreview{
+  position:absolute;bottom:100px;height:170px;z-index:51;display:none;
+  background:rgba(255,100,100,.10);
+  border-left:2px dashed rgba(255,150,150,.8);
+  pointer-events:none;
+}
+.nextCue{
+  position:absolute;top:26px;left:50%;transform:translateX(-50%);
+  display:none;
+  padding:10px 16px;border-radius:12px;
+  background:rgba(13,17,24,.84);border:1px solid rgba(184,197,216,.22);
+  color:#e2e8f1;font-weight:800;
+}
+.exit{
+  position:absolute;right:31px;bottom:142px;z-index:8;
+  padding:10px 14px;border-radius:13px;
+  background:rgba(24,16,11,.85);
+  border:1px solid rgba(244,180,91,.42);
+  color:#ffe0a3;font-weight:900;font-size:13px;
+}
+.direction{position:absolute;left:28px;bottom:21px;color:#73869e;font-size:12px;letter-spacing:2px}
+.answerArea{
+  display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;
+  padding:24px 26px 28px;
+  background:linear-gradient(180deg,#111925,#0b111a);
+  border-top:1px solid rgba(255,255,255,.05);
+}
+.answerLeft{text-align:center}
+.prompt{font-size:20px;font-weight:800;min-height:30px;margin-bottom:15px}
+.choices{display:grid;grid-template-columns:repeat(3,78px);justify-content:center;gap:14px 18px}
+.choice{
+  width:78px;height:78px;border-radius:50%;border:none;
+  cursor:pointer;position:relative;
+  box-shadow:none;
+  transition:.12s transform,.12s filter;
+}
+.choice:after{
+  content:attr(data-key);
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  color:white;font-size:22px;font-weight:900;
+  text-shadow:0 2px 4px rgba(0,0,0,.75);
+}
+.choice:hover{transform:translateY(-3px) scale(1.04);filter:none}
+.choice:active{transform:scale(.96)}
+.choice:disabled{opacity:.45;cursor:default;transform:none}
+.sideControls{display:flex;flex-direction:column;gap:10px;min-width:180px}
+.ctrl{
+  border:1px solid #2e4f69;background:linear-gradient(#163552,#0d2035);
+  color:#eaf6ff;border-radius:13px;padding:12px 16px;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,.25);
+}
+.ctrl.secondary{background:linear-gradient(#222b38,#141b25);border-color:#344253}
+.ctrl:hover{filter:brightness(1.08)}
+.help{text-align:center;color:#708399;font-size:12px;padding:14px 0 0}
+.good{color:var(--good)}.bad{color:var(--bad)}.encode{color:#80e5ff}
+@media(max-width:850px){
+  .topbar{grid-template-columns:1fr}.stats{width:100%}.stat{flex:1;min-width:0}.iconBtns{display:none}
+  .tip{display:none}.promptPanel{right:18px;top:110px;width:220px}.scene{margin-top:80px}
+  .answerArea{grid-template-columns:1fr}.sideControls{flex-direction:row;justify-content:center}
+}
+@media(max-width:650px){
+  .app{padding:10px}.stage{min-height:460px}.scene{height:300px}
+  .ball{width:54px;height:54px;flex-basis:54px}.belt{gap:10px}
+  .viewport{height:72px}.tunnel,.previewCover,.downPreview{height:135px;bottom:92px}
+  .choice{width:62px;height:62px}.promptPanel{display:none}
+  h1{font-size:34px}.brain{width:46px;height:46px}
+}
+</style>
+
+</head>
+
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brain">🧠</div>
+      <div>
+        <h1>Memory <span>Conveyor</span></h1>
+        <div class="tag">WATCH • REMEMBER • RECALL</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Level (Span)</span><b id="load">1</b></div>
+      <div class="stat"><span>Score</span><b id="score">0</b></div>
+      <div class="stat"><span>Streak</span><b id="streak">0</b></div>
+    </div>
+    <div class="modeControls">
+      <button class="modeBtn active" id="adaptiveBtn">Adaptive</button>
+      <button class="modeBtn" id="fixedBtn">Fixed Span</button>
+      <div class="spanPicker" id="spanPicker"><button class="spanBtn" id="spanMinus">−</button><span class="spanValue" id="fixedSpanValue">3</span><button class="spanBtn" id="spanPlus">+</button></div>
+    </div>
+    <div class="iconBtns">
+      <button class="iconBtn" title="Settings">⚙</button>
+      <button class="iconBtn" title="Help">?</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="ambient"></div>
+    <div class="tip">💡 <b>Tip</b><br>Remember the order of colors as they enter the tunnel.</div>
+    <div class="promptPanel">What color comes out next?</div>
+
+    <div class="scene">
+      <div class="nextCue" id="nextCue">Next turn: span 2</div>
+      <div class="railTop"></div>
+      <div class="viewport"><div class="belt" id="belt"></div></div>
+      <div class="tunnel" id="tunnel"></div>
+      <div class="previewCover" id="previewCover"></div>
+      <div class="downPreview" id="downPreview"></div>
+      <div class="rollers"></div>
+      <div class="exit">ANSWER / EXIT →</div>
+      <div class="direction">CONVEYOR FLOW ←</div>
+    </div>
+
+    <div class="answerArea">
+      <div class="answerLeft">
+        <div class="prompt" id="prompt">Press Start.</div>
+        <div class="choices" id="choices"></div>
+      </div>
+      <div class="sideControls">
+        <button class="ctrl" id="peek">👁 Uncover · Space</button>
+        <button class="ctrl secondary" id="start">Start / Restart · Enter</button>
+        <button class="ctrl secondary" id="soundToggle">🔊 Sound On</button>
+      </div>
+    </div>
+  </div>
+  <div class="help">Adaptive mode • Correct = +1, mistake = −1. Advance target = 10 × (span + 1); drop threshold = −40% of that target. Use Reorient anytime. Net progress: correct = +1, mistake = -1. Stage targets are 10, 15, 20, 25…</div>
+</div>
+<script>
+const COLORS=[['Red','#FF0000'],['Orange','#FF6600'],['Yellow','#FFFF00'],['Purple','#8000FF'],['Blue','#0000FF'],['Green','#00C853']];
+let balls=[], memory=[], span=1, score=0, streak=0, correct=0, stageProgress=0, mode='idle', busy=false, timer=null;
+let pendingLevelUp=false;
+let pendingLevelDown=false;
+let gameMode='adaptive', fixedSpan=3;
+let gameStarted=false;
+let inputQueue=[];
+let revealing=false;
+
+const belt=document.getElementById('belt'), tunnel=document.getElementById('tunnel'), prompt=document.getElementById('prompt');
+const previewCover=document.getElementById('previewCover'), nextCue=document.getElementById('nextCue'), downPreview=document.getElementById('downPreview');
+const scoreEl=document.getElementById('score'), streakEl=document.getElementById('streak'), loadEl=document.getElementById('load');
+const rand=()=>COLORS[Math.floor(Math.random()*COLORS.length)];
+
+function dims(){
+  const m=innerWidth<=650;
+  const ball=m?54:76;
+  const gap=m?10:16;
+  const step=ball+gap;       // exact center-to-center spacing between balls
+  const pad=22;             // belt padding-left
+  return {ball,gap,step,pad};
+}
+function setChoicesDisabled(v){document.querySelectorAll('.choice').forEach(b=>b.disabled=v)}
+function renderBalls(){
+  belt.innerHTML='';
+  balls.forEach(c=>{
+    const d=document.createElement('div'); d.className='ball'; d.style.background=c[1]; belt.appendChild(d);
+  });
+}
+function renderHud(){
+  const {ball,gap,step,pad}=dims();
+  const leftOverscan=20, rightOverscan=12;
+  const tunnelWidth=leftOverscan + pad + ball + rightOverscan + (span-1)*step;
+  tunnel.style.width=tunnelWidth+'px';
+  tunnel.textContent='';
+  tunnel.style.display=gameStarted?'grid':'none';
+  loadEl.textContent=span; scoreEl.textContent=score; streakEl.textContent=streak;
+
+  previewCover.style.display='none';
+  downPreview.style.display='none';
+  nextCue.style.display='none';
+
+  if(!gameStarted) return;
+
+  if(gameMode==='adaptive' && pendingLevelUp && span<7){
+    previewCover.style.display='block';
+    previewCover.style.width=step+'px';
+    previewCover.style.left=(tunnelWidth-leftOverscan)+'px';
+    nextCue.style.display='block';
+    nextCue.textContent='Next correct: span '+(span+1);
+  } else if(gameMode==='adaptive' && pendingLevelDown && span>1){
+    downPreview.style.display='block';
+    downPreview.style.width=step+'px';
+    downPreview.style.left=(tunnelWidth-leftOverscan-step)+'px';
+    nextCue.style.display='block';
+    nextCue.textContent='Next mistake: span '+(span-1);
+  }
+}
+function initBalls(){balls=Array.from({length:16},rand); renderBalls(); belt.style.transform='translateX(0px)'}
+function animateAdvance(onDone){
+  busy=true;
+  const {step}=dims();
+  belt.classList.add('moving');
+  belt.style.transform=`translateX(-${step}px)`;
+  setTimeout(()=>{
+    belt.classList.remove('moving');
+    balls.shift(); balls.push(rand());
+    renderBalls();
+    belt.style.transform='translateX(0px)';
+    void belt.offsetWidth;
+    busy=false;
+    if(onDone) onDone();
+  },430);
+}
+
+function start(){
+  clearTimeout(timer);
+  span=(gameMode==='fixed'?fixedSpan:1);
+  score=0;streak=0;correct=0;stageProgress=0;memory=[];
+  mode='play';busy=false;inputQueue=[];pendingLevelUp=false;pendingLevelDown=false;
+  gameStarted=true;
+
+  // Start NEVER moves, regenerates, or shifts the conveyor in any mode.
+  // Use the balls already presented under the selected blind as the initial memory state.
+  memory=balls.slice(0,span);
+
+  renderHud();
+  setChoicesDisabled(false);
+  prompt.className='prompt';
+  prompt.textContent='Started — conveyor is stationary until your first answer.';
+}
+
+function encodeOne(){
+  if(mode!=='encoding'||busy) return;
+  if(memory.length>=span){
+    mode='play'; setChoicesDisabled(false);
+    prompt.className='prompt'; prompt.textContent='What color is coming out next?';
+    return;
+  }
+  // The ball immediately to the right of the tunnel is at index span.
+  const entering=balls[span];
+  prompt.className='prompt encode';
+  prompt.textContent='Watch '+entering[0]+' move into the tunnel…';
+  animateAdvance(()=>{
+    memory.push(entering);
+    timer=setTimeout(encodeOne,350);
+  });
+}
+
+
+let soundEnabled=true;
+let audioCtx=null;
+
+function getAudioCtx(){
+  if(!audioCtx){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function tone(freq,duration=0.12,type='sine',gain=0.055,delay=0){
+  if(!soundEnabled) return;
+  const ctx=getAudioCtx();
+  const start=ctx.currentTime+delay;
+  const osc=ctx.createOscillator();
+  const g=ctx.createGain();
+  osc.type=type;
+  osc.frequency.setValueAtTime(freq,start);
+  g.gain.setValueAtTime(0.0001,start);
+  g.gain.exponentialRampToValueAtTime(gain,start+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(start); osc.stop(start+duration+0.02);
+}
+
+function playCorrect(){
+  tone(660,0.09,'sine',0.045,0);
+  tone(880,0.12,'sine',0.04,0.07);
+}
+function playWrong(){
+  tone(220,0.13,'square',0.035,0);
+  tone(165,0.16,'square',0.03,0.07);
+}
+function playLevelUp(){
+  tone(523,0.10,'sine',0.045,0);
+  tone(659,0.10,'sine',0.045,0.09);
+  tone(784,0.16,'sine',0.05,0.18);
+}
+function playLevelDown(){
+  tone(440,0.10,'triangle',0.04,0);
+  tone(349,0.10,'triangle',0.04,0.09);
+  tone(262,0.16,'triangle',0.045,0.18);
+}
+function playWarningUp(){
+  tone(740,0.08,'sine',0.025,0);
+}
+function playWarningDown(){
+  tone(300,0.08,'triangle',0.025,0);
+}
+
+function choose(c){
+  if(mode!=='play') return;
+  if(busy){
+    // Buffer every rapid-fire answer in FIFO order.
+    inputQueue.push(c);
+    return;
+  }
+  const answer=memory.shift();
+  const ok=c[0]===answer[0];
+
+  if(ok){
+    score+=10+streak; streak++; correct++; stageProgress++;
+    playCorrect();
+    prompt.className='prompt good';
+    prompt.textContent='Correct — '+answer[0]+'. Progress: '+stageProgress+'.';
+  } else {
+    streak=0; stageProgress--;
+    playWrong();
+    prompt.className='prompt bad';
+    prompt.textContent='It was '+answer[0]+'. Progress: '+stageProgress+'.';
+  }
+
+  const levelUpNow=gameMode==='adaptive' && pendingLevelUp && ok && span<7;
+  const levelDownNow=gameMode==='adaptive' && pendingLevelDown && !ok && span>1;
+
+  if(levelUpNow){
+    span++; stageProgress=0; pendingLevelUp=false; pendingLevelDown=false;
+    playLevelUp();
+  } else if(levelDownNow){
+    span--; stageProgress=0; pendingLevelDown=false; pendingLevelUp=false;
+    playLevelDown();
+    if(memory.length>span-1) memory=memory.slice(0,Math.max(0,span-1));
+  }
+
+  renderHud();
+
+  const entering=balls[span];
+  animateAdvance(()=>{
+    memory.push(entering);
+
+    if(levelUpNow){
+      const extraHidden=balls[span-1];
+      memory.push(extraHidden);
+      prompt.className='prompt encode';
+      prompt.textContent='Span '+span+' is now active.';
+    } else if(levelDownNow){
+      if(memory.length>span) memory=memory.slice(0,span);
+      prompt.className='prompt encode';
+      prompt.textContent='Span '+span+' is now active.';
+    }
+
+    // Longer adaptive stages.
+    // Advance target = 10 × (span + 1): 20, 30, 40, 50...
+    // Drop threshold = -40% of the advance target.
+    const upThreshold=10*(span+1);
+    const downThreshold=-Math.round(upThreshold*0.40);
+
+    // Cancel warnings if performance moves away from threshold.
+    if(pendingLevelUp && stageProgress<upThreshold-1) pendingLevelUp=false;
+    if(pendingLevelDown && stageProgress>downThreshold+1) pendingLevelDown=false;
+
+    if(gameMode==='adaptive' && span<7 && stageProgress===upThreshold-1){
+      pendingLevelUp=true; pendingLevelDown=false;
+      playWarningUp();
+      prompt.className='prompt encode';
+      prompt.textContent='Next correct answer advances to span '+(span+1)+'.';
+    } else if(gameMode==='adaptive' && span>1 && stageProgress===downThreshold+1){
+      pendingLevelDown=true; pendingLevelUp=false;
+      playWarningDown();
+      prompt.className='prompt bad';
+      prompt.textContent='Next mistake drops to span '+(span-1)+'.';
+    }
+
+    renderHud();
+    setChoicesDisabled(false);
+    timer=setTimeout(()=>{
+      if(mode==='play'&&!busy){
+        prompt.className='prompt';
+        prompt.textContent='What color is coming out next?';
+        if(inputQueue.length){
+          const next=inputQueue.shift();
+          inputQueue=[];
+          choose(next);
+        }
+      }
+    },0);
+  });
+}
+
+const choices=document.getElementById('choices');
+const KEYMAP=['q','w','e','a','s','d'];
+COLORS.forEach((c,i)=>{
+  const b=document.createElement('button');
+  b.className='choice';
+  b.style.background=c[1];
+  b.title=c[0]+' ('+KEYMAP[i].toUpperCase()+')';
+  b.dataset.key=KEYMAP[i].toUpperCase();
+  b.onclick=()=>choose(c);
+  choices.appendChild(b);
+});
+
+// Keyboard controls: QWE / ASD for colors, Space to reorient, Enter to start/restart.
+document.addEventListener('keydown',(e)=>{
+  if(e.repeat) return;
+  const key=e.key.toLowerCase();
+  const idx=KEYMAP.indexOf(key);
+  if(idx>=0){
+    e.preventDefault();
+    choose(COLORS[idx]);
+    return;
+  }
+  if(e.code==='Space'){
+    e.preventDefault();
+    document.getElementById('peek').click();
+    return;
+  }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    start();
+  }
+});
+document.getElementById('peek').onclick=()=>{
+  if(mode==='idle' || busy || revealing) return;
+  score=Math.max(0,score-(10*span));
+  if(gameMode==='adaptive') stageProgress-=span;
+  pendingLevelUp=false;
+  pendingLevelDown=false;
+  renderHud();
+  revealing=true;
+  setChoicesDisabled(true);
+  tunnel.classList.add('revealed');
+  previewCover.classList.add('revealed');
+  prompt.className='prompt encode';
+  prompt.textContent=gameMode==='adaptive'?('Reorient: −'+(10*span)+' score / −'+span+' progress.'):('Reorient: −'+(10*span)+' score.');
+  setTimeout(()=>{
+    tunnel.classList.remove('revealed');
+    previewCover.classList.remove('revealed');
+    revealing=false;
+    if(mode==='play') setChoicesDisabled(false);
+    prompt.className='prompt';
+    prompt.textContent=mode==='play' ? 'What color is coming out next?' : prompt.textContent;
+  },1800);
+};
+function updateModeUI(){
+ document.getElementById('adaptiveBtn').classList.toggle('active',gameMode==='adaptive');
+ document.getElementById('fixedBtn').classList.toggle('active',gameMode==='fixed');
+ document.getElementById('spanPicker').style.display=gameMode==='fixed'?'flex':'none';
+ document.getElementById('fixedSpanValue').textContent=fixedSpan;
+}
+document.getElementById('adaptiveBtn').onclick=()=>{gameMode='adaptive';updateModeUI();};
+document.getElementById('fixedBtn').onclick=()=>{gameMode='fixed';updateModeUI();};
+document.getElementById('spanMinus').onclick=()=>{fixedSpan=Math.max(1,fixedSpan-1);updateModeUI();};
+document.getElementById('spanPlus').onclick=()=>{fixedSpan=Math.min(10,fixedSpan+1);updateModeUI();};
+updateModeUI();
+document.getElementById('soundToggle').onclick=()=>{
+  soundEnabled=!soundEnabled;
+  document.getElementById('soundToggle').textContent=soundEnabled?'🔊 Sound On':'🔇 Sound Off';
+  if(soundEnabled){
+    try{ getAudioCtx().resume(); tone(660,0.06,'sine',0.025,0); }catch(e){}
+  }
+};
+document.getElementById('start').onclick=start;
+addEventListener('resize',()=>{renderHud();});
+initBalls();renderHud();setChoicesDisabled(true);
+</script>
+</body>
+</html>
